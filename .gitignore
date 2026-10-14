@@ -6,3 +6,6 @@ ios/
 .env
 *.apk
 *.aab
+
+# Datos de idioma que Tesseract.js descarga al ejecutarse con Node
+*.traineddata

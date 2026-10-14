@@ -87,17 +87,36 @@ function median(values: number[]): number {
   return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
 }
 
+function percentile75(values: number[]): number {
+  const s = [...values].sort((a, b) => a - b);
+  return s[Math.floor(0.75 * (s.length - 1))];
+}
+
+/** A partir de cuántos huecos se usa también el hueco típico de la página. */
+const MIN_GAPS_FOR_PAGE_RHYTHM = 4;
+
 /**
- * Une los renglones en texto. Un hueco vertical mayor que `gapFactor` veces la
- * altura típica de renglón se interpreta como separación de estrofas.
+ * Une los renglones en texto. Un hueco vertical se interpreta como separación de
+ * estrofas si supera a la vez:
+ *  - `gapFactor` × la altura típica de renglón, y
+ *  - `rhythmFactor` × el hueco típico de la página (percentil 75 de los huecos).
+ * La segunda condición importa cuando el OCR ajusta mucho los rectángulos al texto
+ * (Tesseract): el espacio normal entre una letra y el siguiente renglón de acordes
+ * llega a superar la altura del renglón, pero es el hueco "de siempre" de la página.
+ * Se usa el percentil 75 porque en páginas con acordes los huecos alternan entre
+ * pequeños (acordes → letra) y normales (letra → acordes).
  */
-export function rowsToText(rows: Row[], gapFactor = 0.9): string {
+export function rowsToText(rows: Row[], gapFactor = 0.9, rhythmFactor = 1.5): string {
   if (rows.length === 0) return '';
   const h = median(rows.map((r) => r.bottom - r.top)) || 1;
+  const gaps = rows.slice(1).map((r, i) => r.top - rows[i].bottom);
+  const threshold =
+    gaps.length >= MIN_GAPS_FOR_PAGE_RHYTHM
+      ? Math.max(gapFactor * h, rhythmFactor * percentile75(gaps))
+      : gapFactor * h;
   const out: string[] = [rows[0].text];
   for (let i = 1; i < rows.length; i++) {
-    const gap = rows[i].top - rows[i - 1].bottom;
-    if (gap > gapFactor * h) out.push('');
+    if (gaps[i - 1] > threshold) out.push('');
     out.push(rows[i].text);
   }
   return out.join('\n');

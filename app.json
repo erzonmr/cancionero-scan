@@ -3,7 +3,7 @@
     "name": "Cancionero Scan",
     "slug": "cancionero-scan",
     "scheme": "cancioneroscan",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -23,9 +23,13 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0f1115"
       },
-      "permissions": ["android.permission.CAMERA"]
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
+      "output": "single",
+      "bundler": "metro",
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
@@ -41,13 +45,19 @@
       ],
       [
         "expo-camera",
-        { "cameraPermission": "Necesitamos la cámara para escanear las páginas de tu cancionero." }
+        {
+          "cameraPermission": "Necesitamos la cámara para escanear las páginas de tu cancionero."
+        }
       ],
       [
         "expo-image-picker",
-        { "photosPermission": "Necesitamos acceso a tus fotos para importar páginas ya fotografiadas." }
+        {
+          "photosPermission": "Necesitamos acceso a tus fotos para importar páginas ya fotografiadas."
+        }
       ]
     ],
-    "experiments": { "typedRoutes": false }
+    "experiments": {
+      "typedRoutes": false
+    }
   }
 }

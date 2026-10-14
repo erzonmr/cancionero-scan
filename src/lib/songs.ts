@@ -1,4 +1,4 @@
-import { File } from 'expo-file-system';
+import { readFileBytes } from './fileBytes';
 import { SCANS_BUCKET, supabase } from './supabase';
 
 export interface Song {
@@ -41,7 +41,7 @@ export async function getSong(id: string): Promise<Song | null> {
 
 async function uploadScan(userId: string, songId: string, imageUri: string): Promise<string> {
   const path = `${userId}/${songId}.jpg`;
-  const bytes = await new File(imageUri).arrayBuffer();
+  const bytes = await readFileBytes(imageUri);
   const { error } = await supabase.storage
     .from(SCANS_BUCKET)
     .upload(path, bytes, { contentType: 'image/jpeg', upsert: true });

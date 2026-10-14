@@ -2,9 +2,10 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../src/components/Button';
+import { errorMessage, notify } from '../src/lib/dialog';
 import { normalizeImage } from '../src/lib/imageTools';
 import { scanSession } from '../src/state/scanSession';
 import { colors } from '../src/theme';
@@ -28,7 +29,7 @@ export default function Scan() {
       const photo = await camera.current.takePictureAsync({ quality: 0.9 });
       await proceed(photo.uri, photo.width, photo.height);
     } catch (e) {
-      Alert.alert('No se pudo tomar la foto', e instanceof Error ? e.message : String(e));
+      notify('No se pudo tomar la foto', errorMessage(e));
       setBusy(false);
     }
   }
@@ -41,7 +42,7 @@ export default function Scan() {
       const a = res.assets[0];
       await proceed(a.uri, a.width, a.height);
     } catch (e) {
-      Alert.alert('No se pudo abrir la imagen', e instanceof Error ? e.message : String(e));
+      notify('No se pudo abrir la imagen', errorMessage(e));
       setBusy(false);
     }
   }

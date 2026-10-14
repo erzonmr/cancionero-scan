@@ -1,10 +1,11 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../src/components/Button';
 import { EditMode, ImageEditor } from '../src/components/ImageEditor';
 import { removeChords } from '../src/lib/chordFilter';
+import { errorMessage, notify } from '../src/lib/dialog';
 import { cropImage, NormRect, rotateImage, ScanImage } from '../src/lib/imageTools';
 import { recognizeLines } from '../src/lib/ocr';
 import { linesToText } from '../src/lib/textLayout';
@@ -50,9 +51,9 @@ export default function EditImage() {
       setBusy('Recortando…');
       const { image: cropped, zonesPx } = await cropImage(image, crop, zones);
       setBusy('Leyendo texto…');
-      const { lines } = await recognizeLines(cropped.uri);
+      const { lines } = await recognizeLines(cropped.uri, setBusy);
       if (lines.length === 0) {
-        Alert.alert('No se encontró texto', 'Intenta con mejor luz o acerca más la cámara.');
+        notify('No se encontró texto', 'Intenta con mejor luz o acerca más la cámara.');
         return;
       }
       setBusy('Quitando acordes…');
@@ -61,7 +62,7 @@ export default function EditImage() {
       scanSession.setResult({ image: cropped, originalText, lyrics, removedLines });
       router.push('/review');
     } catch (e) {
-      Alert.alert('Error al procesar', e instanceof Error ? e.message : String(e));
+      notify('Error al procesar', errorMessage(e));
     } finally {
       setBusy(null);
     }
