@@ -20,7 +20,13 @@ export default function Login() {
   async function signUp() {
     if (password.length < 6) return notify('Contraseña muy corta', 'Usa al menos 6 caracteres.');
     setBusy('up');
-    const { data, error } = await supabase.auth.signUp({ email: email.trim(), password });
+    const { data, error } = await supabase.auth.signUp({
+      email: email.trim(),
+      password,
+      // Web: que el enlace del correo vuelva a esta misma app. Supabase solo lo respeta si la URL
+      // es la Site URL o está en Redirect URLs; si no, usa la Site URL (docs/10-version-web.md).
+      options: Platform.OS === 'web' ? { emailRedirectTo: window.location.origin } : undefined,
+    });
     setBusy(null);
     if (error) return notify('No se pudo crear la cuenta', error.message);
     if (!data.session) notify('Revisa tu correo', 'Te enviamos un enlace para confirmar la cuenta.');
