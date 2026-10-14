@@ -1,40 +1,39 @@
-# Cancionero Scan — MVP
+# Cancionero Scan
 
 [![CI](https://github.com/erzonmr/cancionero-scan/actions/workflows/ci.yml/badge.svg)](https://github.com/erzonmr/cancionero-scan/actions/workflows/ci.yml)
 
-App móvil (Android / iOS) para **escanear canciones de un cancionero con la cámara**, **quitar automáticamente los acordes** y **guardar solo la letra en la nube**, sincronizada entre todos tus dispositivos.
+App para **escanear canciones de un cancionero con la cámara del teléfono**, **quitar automáticamente los acordes** y **guardar solo la letra en la nube**, sincronizada entre todos tus dispositivos.
+
+**👉 Úsala en: https://cancionero-erzon.vercel.app**. Ábrela en el navegador del teléfono e instálala con *Agregar a pantalla principal*. No hace falta APK ni tienda.
 
 - Cámara o galería → **editor de imagen** (girar, recortar, marcar zonas a ignorar)
-- OCR en el dispositivo (Google ML Kit, gratis y sin API key)
+- OCR gratis y sin API key: **Tesseract.js** en el navegador (versión web) o **Google ML Kit** (app nativa opcional)
 - Filtro de acordes (notación americana `G Am D/F#` y latina `Sol Lam Re/Fa#`)
 - Revisión y corrección de la letra antes de guardar
 - Almacenamiento **100 % en la nube** (Supabase: Postgres + Storage)
 - **Sincronización en tiempo real** entre dispositivos + manejo de conflictos
 
-## Inicio rápido
+## Desarrollo rápido (web)
 
 ```bash
 npm ci
-copy .env.example .env      # y pega la URL y la key de Supabase
-npm run build:dev           # genera el APK de desarrollo en la nube (EAS)
-npm start                   # servidor de desarrollo
+copy .env.example .env      # URL y publishable key de Supabase
+npm run web                 # abre la app en el navegador, con recarga instantánea
 ```
 
-Antes, ejecuta `supabase/migrations/0001_init.sql` en tu proyecto Supabase.
+## Publicar
 
-## Despliegue
+**Push o merge a `main` = nueva versión en producción** (Vercel, configurado en `vercel.json`). Cada pull request recibe su propia URL de vista previa. Detalles, configuración de Supabase y cómo funciona la versión web: [`docs/10-version-web.md`](docs/10-version-web.md).
 
 ```bash
 npm run check               # typecheck + pruebas (también corre en CI)
-npm run build:apk           # APK para instalar sin tienda
-npm run build:aab           # .aab para Google Play
-npm run submit:android      # enviar a Google Play (track internal)
+npm run build:web           # build local en dist/, para revisarla
 ```
 
-Configuración única (EAS, variables de entorno, identificador de la app) y checklist por versión: [`docs/07-compilar-apk.md`](docs/07-compilar-apk.md). Cambios: [`CHANGELOG.md`](CHANGELOG.md).
+## App nativa (opcional)
 
-> ⚠️ No funciona en **Expo Go**: el OCR usa un módulo nativo. Necesitas un *development build* (ver `docs/02-instalacion-windows.md`).
+El mismo código compila como app de Android/iOS con EAS (`npm run build:apk`). No es necesaria para usar la app: [`docs/07-compilar-apk.md`](docs/07-compilar-apk.md).
 
 ## Documentación
 
-Toda la documentación está en [`/docs`](docs/README.md).
+Toda la documentación está en [`/docs`](docs/README.md). Cambios: [`CHANGELOG.md`](CHANGELOG.md).

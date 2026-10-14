@@ -2,7 +2,10 @@
 
 ## Limitaciones conocidas
 
-- **No funciona en Expo Go** (módulo nativo de OCR); requiere development build.
+- **App nativa:** no funciona en Expo Go (módulo nativo de OCR); requiere development build. La versión web no tiene esta limitación.
+- **OCR web algo menos preciso que ML Kit.** Tesseract puede confundir acordes en fotos borrosas (p. ej. `C` → `Cc`); ese renglón no se reconoce como acordes y hay que borrarlo en la revisión. La primera vez descarga ~10 MB.
+- **Diálogos en la web**: son los del navegador (`window.confirm`), solo con *Aceptar* / *Cancelar*. Cuando las opciones son otras (conflicto de edición), el mensaje explica qué hace cada botón.
+- **Registro abierto**: cualquiera con la URL puede crear una cuenta (aunque nunca ve tus datos). Desactiva los registros en Supabase cuando tengas las cuentas que necesitas ([10-version-web.md](10-version-web.md)).
 - **Requiere internet para guardar.** No hay cola offline (por diseño: nube, no local).
 - **Una página por canción.** Canciones que ocupan dos páginas se guardan como dos escaneos o se pega el texto a mano al editar.
 - **Sin corrección de perspectiva** automática: si la foto está muy inclinada, el OCR baja de calidad. El recorte es rectangular.
@@ -18,12 +21,14 @@
 | Prioridad | Mejora | Notas técnicas |
 |-----------|--------|----------------|
 | Alta | Escaneo de **varias páginas** por canción | Array de imágenes en Storage, concatenar textos |
-| Alta | **Detección de bordes y corrección de perspectiva** | `react-native-document-scanner-plugin` (usa el escáner nativo de Google/Apple) |
+| Alta | **OCR en la nube como respaldo** (botón *Reintentar con OCR en la nube*) | OCR.space (gratis ~25 000 fotos/mes, solo registro) o Google Vision vía Supabase Edge Function. La clave va en la Edge Function, nunca en la app. Prioridad alta si Tesseract no alcanza con tus cancioneros |
+| Alta | **Detección de bordes y corrección de perspectiva** | Web: OpenCV.js o jscanify. Nativo: `react-native-document-scanner-plugin` |
 | Alta | **Setlists / listas para el culto** | Tabla `setlists` + `setlist_songs (position)` |
 | Media | **Cancioneros compartidos** con el equipo de alabanza | Tabla `songbooks` + `songbook_members (role)`; ajustar RLS |
 | Media | Opción "no guardar la foto" para ahorrar espacio | Columna booleana en ajustes |
 | Media | Modo presentación / proyección (pantalla completa, desplazamiento automático) | |
 | Media | Exportar a `.txt` / `.pdf` / ChordPro (letra sola) | expo-sharing + expo-print |
-| Baja | OCR en la nube como respaldo (Google Vision vía Edge Function) | Para fotos difíciles; requiere facturación |
+| Media | Modo sin conexión para **leer** canciones ya guardadas | Caché de la lista en IndexedDB |
+| Baja | Diálogos propios en web en lugar de `window.confirm` | Componente modal con botones con nombre |
 | Baja | Historial de versiones de cada canción | Tabla `song_revisions` llenada por trigger |
 | Baja | Búsqueda de texto completo en el servidor | `tsvector` + índice GIN en `lyrics` |

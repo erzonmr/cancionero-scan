@@ -2,7 +2,6 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -16,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../src/components/Button';
+import { ask, errorMessage, notify } from '../../src/lib/dialog';
 import { ConflictError, createSong, deleteSong, getScanUrl, getSong, Song, updateSong } from '../../src/lib/songs';
 import { supabase } from '../../src/lib/supabase';
 import { colors } from '../../src/theme';
@@ -61,7 +61,7 @@ export default function SongScreen() {
       .on<Song>('postgres_changes', { event: 'DELETE', schema: 'public', table: 'songs' }, (p) => {
         if ((p.old as Partial<Song>).id !== id || deletingRef.current) return;
         if (editingRef.current) return setRemoteDeleted(true); // no sacar al usuario con cambios sin guardar
-        Alert.alert('Canción eliminada', 'Se eliminó desde otro dispositivo.');
+        notify('Canción eliminada', 'Se eliminó desde otro dispositivo.');
         router.back();
       })
       .subscribe();
@@ -88,70 +88,75 @@ export default function SongScreen() {
       setEditing(false);
       setRemoteChanged(false);
     } catch (e) {
-      if (e instanceof ConflictError && !e.latest) {
-        // Se eliminó en otro dispositivo mientras se editaba: no perder lo escrito.
-        Alert.alert('Canción eliminada', 'Se eliminó desde otro dispositivo mientras la editabas.', [
-          { text: 'Descartar', style: 'destructive', onPress: () => router.back() },
-          {
-            text: 'Guardar como nueva',
-            onPress: async () => {
-              try {
-                const { song: created } = await createSong({ title, lyrics, originalText: song.original_text ?? '' });
-                router.replace(`/song/${created.id}`);
-              } catch (err) {
-                Alert.alert('No se pudo guardar', err instanceof Error ? err.message : String(err));
-              }
-            },
-          },
-        ]);
-      } else if (e instanceof ConflictError) {
-        const latest = e.latest;
-        Alert.alert(
-          'Conflicto de edición',
-          'Esta canción cambió en otro dispositivo mientras la editabas.',
-          [
-            { text: 'Descartar mis cambios', style: 'destructive', onPress: () => { setSong(latest); setEditing(false); } },
-            {
-              text: 'Sobrescribir con los míos',
-              onPress: async () => {
-                if (!latest) return; // no ocurre: el caso sin `latest` se maneja arriba
-                try {
-                  setSong(await updateSong(latest.id, { title, lyrics }, latest.version));
-                  setEditing(false);
-                } catch (err) {
-                  Alert.alert('Error', err instanceof Error ? err.message : String(err));
-                }
-              },
-            },
-          ],
-        );
-      } else {
-        Alert.alert('No se pudo guardar', e instanceof Error ? e.message : String(e));
-      }
+      await handleSaveError(e);
     } finally {
       setSaving(false);
     }
   }
 
-  function confirmDelete() {
+  async function handleSaveError(e: unknown) {
     if (!song) return;
-    Alert.alert('Eliminar canción', `¿Eliminar "${song.title}" de la nube? No se puede deshacer.`, [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Eliminar',
-        style: 'destructive',
-        onPress: async () => {
-          deletingRef.current = true;
-          try {
-            await deleteSong(song);
-            router.back();
-          } catch (e) {
-            deletingRef.current = false;
-            Alert.alert('No se pudo eliminar', e instanceof Error ? e.message : String(e));
-          }
-        },
-      },
-    ]);
+    if (!(e instanceof ConflictError)) return notify('No se pudo guardar', errorMessage(e));
+    try {
+      const latest = e.latest;
+      if (!latest) {
+        // Se eliminó en otro dispositivo mientras se editaba: no perder lo escrito.
+        const keep = await ask('Canción eliminada', 'Se eliminó desde otro dispositivo mientras la editabas.', {
+          confirm: 'Guardar como nueva',
+          cancel: 'Descartar',
+          cancelable: false,
+        });
+        if (!keep) return router.back();
+        const { song: created } = await createSong({ title, lyrics, originalText: song.original_text ?? '' });
+        router.replace(`/song/${created.id}`);
+        return;
+      }
+      const overwrite = await ask('Conflicto de edición', 'Esta canción cambió en otro dispositivo mientras la editabas.', {
+        confirm: 'Sobrescribir con los míos',
+        cancel: 'Descartar mis cambios',
+        cancelable: false,
+      });
+      if (overwrite) setSong(await updateSong(latest.id, { title, lyrics }, latest.version));
+      else setSong(latest);
+      setEditing(false);
+    } catch (err) {
+      notify('No se pudo guardar', errorMessage(err));
+    }
+  }
+
+  async function confirmDelete() {
+    if (!song) return;
+    const ok = await ask('Eliminar canción', `¿Eliminar "${song.title}" de la nube? No se puede deshacer.`, {
+      confirm: 'Eliminar',
+      destructive: true,
+    });
+    if (!ok) return;
+    deletingRef.current = true;
+    try {
+      await deleteSong(song);
+      router.back();
+    } catch (e) {
+      deletingRef.current = false;
+      notify('No se pudo eliminar', errorMessage(e));
+    }
+  }
+
+  async function shareSong(s: Song) {
+    const text = `${s.title}
+
+${s.lyrics}`;
+    try {
+      await Share.share({ title: s.title, message: text });
+    } catch (e) {
+      if (e instanceof Error && e.name === 'AbortError') return; // el usuario cerró el menú de compartir
+      // En navegadores sin "Compartir" (p. ej. Firefox de escritorio), copiar al portapapeles.
+      if (Platform.OS === 'web' && navigator.clipboard) {
+        await navigator.clipboard.writeText(text);
+        notify('Letra copiada', 'Pégala donde quieras compartirla.');
+      } else {
+        notify('No se pudo compartir', errorMessage(e));
+      }
+    }
   }
 
   async function toggleImage() {
@@ -159,7 +164,7 @@ export default function SongScreen() {
     if (!song?.image_path) return;
     const url = await getScanUrl(song.image_path);
     if (url) setImageUrl(url);
-    else Alert.alert('Imagen no disponible');
+    else notify('Imagen no disponible');
   }
 
   if (loading) return <ActivityIndicator style={{ flex: 1, backgroundColor: colors.bg }} color={colors.primary} />;

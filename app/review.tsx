@@ -1,9 +1,10 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../src/components/Button';
 import { removeChords } from '../src/lib/chordFilter';
+import { errorMessage, notify } from '../src/lib/dialog';
 import { createSong } from '../src/lib/songs';
 import { scanSession } from '../src/state/scanSession';
 import { colors } from '../src/theme';
@@ -32,7 +33,7 @@ export default function Review() {
   const scan = result;
 
   async function save() {
-    if (!lyrics.trim()) return Alert.alert('Letra vacía', 'No hay texto para guardar.');
+    if (!lyrics.trim()) return notify('Letra vacía', 'No hay texto para guardar.');
     setSaving(true);
     try {
       const { song, imageError } = await createSong({
@@ -42,11 +43,11 @@ export default function Review() {
         imageUri: scan.image.uri,
       });
       scanSession.clear();
-      if (imageError) Alert.alert('Letra guardada', `La imagen no se pudo subir: ${imageError}`);
+      if (imageError) notify('Letra guardada', `La imagen no se pudo subir: ${imageError}`);
       router.dismissAll();
       router.push(`/song/${song.id}`);
     } catch (e) {
-      Alert.alert('No se pudo guardar en la nube', e instanceof Error ? e.message : String(e));
+      notify('No se pudo guardar en la nube', errorMessage(e));
     } finally {
       setSaving(false);
     }

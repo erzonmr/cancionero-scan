@@ -15,14 +15,21 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: JSON de configuración válidos
+        run: node -e "for (const f of ['package.json','app.json','eas.json','vercel.json','public/manifest.json']) JSON.parse(require('fs').readFileSync(f,'utf8'))"
       - name: Typecheck
         run: npm run typecheck
       - name: Pruebas
         run: npm test
       - name: Expo doctor
         run: npx --yes expo-doctor@latest
+      - name: Build web (PWA)
+        run: npm run build:web
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
       - name: Bundle de Android
-        run: npx expo export --platform android --output-dir dist
+        run: npx expo export --platform android --output-dir dist-android
         env:
           # Valores ficticios: solo se compila el JS, no se conecta a Supabase.
           EXPO_PUBLIC_SUPABASE_URL: https://example.supabase.co

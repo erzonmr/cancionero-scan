@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Button } from '../src/components/Button';
+import { notify } from '../src/lib/dialog';
 import { supabase } from '../src/lib/supabase';
 import { colors } from '../src/theme';
 
@@ -13,16 +14,16 @@ export default function Login() {
     setBusy('in');
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     setBusy(null);
-    if (error) Alert.alert('No se pudo iniciar sesión', error.message);
+    if (error) notify('No se pudo iniciar sesión', error.message);
   }
 
   async function signUp() {
-    if (password.length < 6) return Alert.alert('Contraseña muy corta', 'Usa al menos 6 caracteres.');
+    if (password.length < 6) return notify('Contraseña muy corta', 'Usa al menos 6 caracteres.');
     setBusy('up');
     const { data, error } = await supabase.auth.signUp({ email: email.trim(), password });
     setBusy(null);
-    if (error) return Alert.alert('No se pudo crear la cuenta', error.message);
-    if (!data.session) Alert.alert('Revisa tu correo', 'Te enviamos un enlace para confirmar la cuenta.');
+    if (error) return notify('No se pudo crear la cuenta', error.message);
+    if (!data.session) notify('Revisa tu correo', 'Te enviamos un enlace para confirmar la cuenta.');
   }
 
   return (
@@ -58,7 +59,7 @@ export default function Login() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg, justifyContent: 'center', padding: 20 },
-  card: { gap: 12 },
+  card: { gap: 12, width: '100%', maxWidth: 480, alignSelf: 'center' },
   title: { color: colors.text, fontSize: 30, fontWeight: '800' },
   subtitle: { color: colors.muted, fontSize: 15, marginBottom: 12 },
   input: {

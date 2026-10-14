@@ -2,6 +2,25 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versiones según `version` en `app.json`.
 
+## [0.3.0] — 2026-10-13
+
+La app pasa a usarse principalmente como **PWA** (web instalable) publicada en Vercel: https://cancionero-erzon.vercel.app. La app nativa sigue compilando con el mismo código.
+
+### Añadido
+- Versión web con **Tesseract.js** como OCR en el navegador (`ocr.web.ts`) y `tesseractLines.ts` para convertir su resultado al formato de ML Kit.
+- Pantalla de escaneo web (`scan.web.tsx`) con la cámara nativa del teléfono.
+- `dialog.ts` (`notify` / `ask`): diálogos que funcionan en web, donde `Alert.alert` no hace nada.
+- PWA: `public/index.html`, `manifest.json`, service worker (`sw.js`) e iconos; `scripts/make-icons.py` genera todos los iconos.
+- `vercel.json`; proyecto Vercel enlazado a GitHub (`main` → producción, PR → vista previa).
+- Proyecto Supabase `cancionero-scan` con la migración aplicada.
+- Scripts `web` y `build:web`; el CI compila también la web y valida los JSON de configuración.
+- Documento [`docs/10-version-web.md`](docs/10-version-web.md) y pruebas manuales W1–W8.
+
+### Cambiado
+- Detección de estrofas: además de la altura del renglón se usa el hueco típico de la página. Con Tesseract cada par acordes/letra quedaba como una estrofa aparte.
+- Compartir en web copia la letra al portapapeles si el navegador no soporta compartir.
+- `react-dom`, `react-native-reanimated`, `react-native-web` y `react-native-worklets` con rangos fijados a las versiones del SDK.
+
 ## [0.2.0] — 2026-10-13
 
 Preparación para despliegue y correcciones de sincronización.

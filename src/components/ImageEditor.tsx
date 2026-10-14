@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { Image, LayoutChangeEvent, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, LayoutChangeEvent, PanResponder, Platform, Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import type { NormRect, ScanImage } from '../lib/imageTools';
 import { colors } from '../theme';
 
@@ -24,6 +24,13 @@ type Drag =
 const MIN = 0.05; // tamaño mínimo del recorte (5 % de la imagen)
 const HANDLE = 28; // radio de toque de las esquinas, en px de pantalla
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+
+/**
+ * En el navegador, arrastrar sobre la capa de gestos haría scroll de la página,
+ * zoom o selección de texto en lugar de mover el recorte. Propiedades CSS que
+ * react-native-web acepta pero que no están en los tipos de React Native.
+ */
+const webGestureStyle = (Platform.OS === 'web' ? { touchAction: 'none', userSelect: 'none' } : {}) as ViewStyle;
 
 /**
  * Editor visual de la imagen escaneada.
@@ -160,7 +167,7 @@ export function ImageEditor({ image, mode, crop, zones, onCropChange, onZonesCha
           <Image source={{ uri: image.uri }} style={{ width: disp.w, height: disp.h }} resizeMode="stretch" />
 
           {/* Capa de gestos: los hijos no reciben toques para que locationX/Y sean relativos a esta capa */}
-          <View style={StyleSheet.absoluteFill} {...responder.panHandlers}>
+          <View style={[StyleSheet.absoluteFill, webGestureStyle]} {...responder.panHandlers}>
             {/* Oscurecer fuera del recorte */}
             <View pointerEvents="none" style={[styles.dim, { left: 0, top: 0, width: disp.w, height: c.top }]} />
             <View pointerEvents="none" style={[styles.dim, { left: 0, top: c.top + c.height, width: disp.w, height: disp.h - c.top - c.height }]} />

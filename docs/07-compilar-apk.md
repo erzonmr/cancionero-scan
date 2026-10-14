@@ -1,4 +1,6 @@
-# 7. Compilar y desplegar
+# 7. App nativa (opcional): compilar y desplegar
+
+> La forma principal de usar y publicar la app es la **versión web** ([10-version-web.md](10-version-web.md)). Esta guía solo hace falta si algún día quieres un `.apk` o publicar en Google Play / App Store.
 
 Todo se compila en la nube con **EAS Build**, así que funciona desde Windows sin Android Studio ni Mac.
 

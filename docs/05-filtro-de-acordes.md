@@ -9,7 +9,11 @@ El OCR no entrega el texto "como se ve": los acordes separados por mucho espacio
 1. **Zonas ignoradas**: se descarta toda línea cuyo rectángulo quede cubierto en más del 50 % por una zona marcada por el usuario.
 2. **Agrupar renglones**: dos líneas pertenecen al mismo renglón visual si se solapan verticalmente más de la mitad de la altura de la más baja.
 3. **Ordenar**: renglones de arriba abajo; dentro del renglón, de izquierda a derecha.
-4. **Estrofas**: si el espacio vertical entre dos renglones es mayor a 0,9 × la altura mediana de renglón, se inserta una línea en blanco.
+4. **Estrofas**: se inserta una línea en blanco si el espacio vertical entre dos renglones supera **a la vez**:
+   - 0,9 × la altura mediana de renglón, y
+   - 1,5 × el hueco típico de la página (percentil 75 de todos los huecos), solo si la página tiene al menos 5 renglones.
+
+   La segunda condición se añadió para Tesseract (versión web), que ajusta los rectángulos al texto mucho más que ML Kit: el espacio normal entre una letra y el siguiente renglón de acordes llegaba a superar la altura del renglón y cada par acordes/letra quedaba como una estrofa aparte. Se usa el percentil 75 porque en páginas con acordes los huecos alternan entre pequeños (acordes → letra) y normales (letra → acordes).
 
 > Las estrofas se detectan **antes** de quitar acordes: entre un renglón de acordes y su letra el hueco es pequeño, entre estrofas es grande.
 
@@ -60,7 +64,7 @@ Al final se colapsan líneas en blanco repetidas (máx. una entre estrofas).
 - **Agregar una etiqueta instrumental**: `INSTRUMENTAL_LABEL_RE`.
 - **Aceptar otra calidad de acorde**: `QUAL`.
 - **Más o menos tolerancia a errores OCR**: el bloque "Tolerancia a errores de OCR" en `classifyLine`.
-- **Sensibilidad de estrofas**: parámetro `gapFactor` de `rowsToText` (más bajo = más líneas en blanco).
+- **Sensibilidad de estrofas**: parámetros `gapFactor` y `rhythmFactor` de `rowsToText` (más bajos = más líneas en blanco).
 
 Después de cualquier cambio:
 
