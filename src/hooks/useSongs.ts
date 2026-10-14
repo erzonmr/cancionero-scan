@@ -1,19 +1,19 @@
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
-import { listSongs, Song } from '../lib/songs';
+import { listSongs, SongSummary } from '../lib/songs';
 import { supabase } from '../lib/supabase';
 
 export type SyncStatus = 'conectando' | 'sincronizado' | 'sin conexión';
 
-function applyChange(list: Song[], payload: RealtimePostgresChangesPayload<Song>): Song[] {
+function applyChange(list: SongSummary[], payload: RealtimePostgresChangesPayload<SongSummary>): SongSummary[] {
   if (payload.eventType === 'DELETE') {
-    const id = (payload.old as Partial<Song>).id;
+    const id = (payload.old as Partial<SongSummary>).id;
     return list.filter((s) => s.id !== id);
   }
-  const row = payload.new as Song;
+  const row = payload.new as SongSummary;
   const exists = list.findIndex((s) => s.id === row.id);
-  let next: Song[];
+  let next: SongSummary[];
   if (exists >= 0) {
     // Ignorar eventos atrasados (versión menor a la que ya tenemos).
     if (list[exists].version > row.version) return list;
@@ -33,7 +33,7 @@ function applyChange(list: Song[], payload: RealtimePostgresChangesPayload<Song>
  *    para recuperar cambios hechos mientras se estaba desconectado.
  */
 export function useSongs() {
-  const [songs, setSongs] = useState<Song[]>([]);
+  const [songs, setSongs] = useState<SongSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<SyncStatus>('conectando');
@@ -59,7 +59,7 @@ export function useSongs() {
 
     const channel = supabase
       .channel('songs-sync')
-      .on<Song>('postgres_changes', { event: '*', schema: 'public', table: 'songs' }, (payload) =>
+      .on<SongSummary>('postgres_changes', { event: '*', schema: 'public', table: 'songs' }, (payload) =>
         setSongs((prev) => applyChange(prev, payload)),
       )
       .subscribe((s) => {

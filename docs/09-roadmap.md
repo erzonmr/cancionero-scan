@@ -9,6 +9,9 @@
 - **OCR alfabeto latino** (español, inglés, portugués). Letra manuscrita: resultados pobres.
 - El filtro puede quitar un renglón de letra de **una sola palabra** que coincida con un acorde ("Sol"). El texto original queda guardado.
 - Sin compartir cancioneros entre cuentas distintas.
+- **El escaneo en curso vive solo en memoria.** Si Android cierra la app mientras está en segundo plano (p. ej. al abrir la galería en un teléfono con poca RAM), se pierde ese escaneo y hay que repetirlo. Lo ya guardado en la nube no se ve afectado.
+- **Tema solo oscuro** (`userInterfaceStyle: "dark"`): la app no sigue el modo claro del sistema.
+- `@react-native-ml-kit/text-recognition` no está marcado como probado en la Nueva Arquitectura en React Native Directory. Funciona mediante la capa de compatibilidad; se excluyó de ese aviso de `expo-doctor` en `package.json`. Vigilarlo al actualizar el SDK.
 
 ## Siguientes pasos sugeridos
 

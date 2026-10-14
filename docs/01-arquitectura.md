@@ -69,10 +69,12 @@ cancionero-scan/
 │   │   └── chordFilter.ts    # Quitar acordes (puro)
 │   ├── state/scanSession.ts  # Escaneo en curso (memoria)
 │   └── theme.ts
+├── assets/                   # Icono, icono adaptable, splash, favicon
 ├── supabase/migrations/0001_init.sql
 ├── tests/                    # Pruebas con node:test + tsx
 ├── docs/                     # Esta documentación
-├── app.json  eas.json  package.json  tsconfig.json  .env.example
+├── .github/workflows/ci.yml  # CI: typecheck, pruebas, expo-doctor, bundle Android
+├── app.json  eas.json  package.json  tsconfig.json  .env.example  CHANGELOG.md
 ```
 
 ## Modelo de datos

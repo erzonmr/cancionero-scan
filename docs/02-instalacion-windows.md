@@ -14,14 +14,18 @@
 
 ## Pasos
 
-### 1. Descomprimir e instalar dependencias
+### 1. Clonar e instalar dependencias
 
 ```powershell
 cd C:\proyectos
-# descomprime cancionero-scan.zip aquí
+git clone https://github.com/erzonmr/cancionero-scan.git
 cd cancionero-scan
-npm install
+npm ci
 ```
+
+Usa `npm ci` (instala exactamente lo que dice `package-lock.json`, igual que EAS y el CI). `npm install` solo cuando agregues o actualices una dependencia; en ese caso usa `npx expo install <paquete>` para que elija la versión compatible con el SDK, y haz commit del `package-lock.json` resultante.
+
+> **Evita carpetas sincronizadas (OneDrive, Dropbox, Google Drive).** `node_modules` tiene decenas de miles de archivos: la sincronización se vuelve lenta y puede bloquear archivos durante `npm ci` o el build (errores `EPERM`/`EBUSY`). Si el proyecto ya está en OneDrive, muévelo a una carpeta local como `C:\proyectos`, o excluye `node_modules` de la sincronización.
 
 ### 2. Configurar Supabase
 
@@ -80,8 +84,12 @@ npm run android
 | `npm start` | Servidor de desarrollo |
 | `npm test` | Pruebas del filtro de acordes y del armado de renglones |
 | `npm run typecheck` | Verificación de tipos TypeScript |
+| `npm run check` | Typecheck + pruebas (lo mismo que el CI) |
+| `npm run doctor` | `expo-doctor`: configuración y versiones de dependencias |
 | `npm run build:dev` | APK de desarrollo (EAS) |
 | `npm run build:apk` | APK de prueba para instalar/distribuir (EAS) |
+| `npm run build:aab` | `.aab` para Google Play (EAS) |
+| `npm run submit:android` | Envía el último `.aab` a Google Play |
 
 ## Problemas frecuentes
 
@@ -91,3 +99,5 @@ npm run android
 | `Faltan EXPO_PUBLIC_SUPABASE_URL...` | No existe `.env` o le faltan variables. Reinicia `npm start` tras editarlo. |
 | La app no conecta al PC | Usa `--tunnel` o desactiva temporalmente el firewall de Windows para Node. |
 | "Invalid login credentials" | Confirma el correo (Supabase envía un enlace) o desactiva la confirmación (ver doc 3). |
+| `npm ci` falla con *package.json and package-lock.json are not in sync* | Alguien editó `package.json` sin regenerar el lock. Ejecuta `npm install`, verifica con `npm run doctor` y haz commit de ambos archivos. EAS Build falla por la misma causa. |
+| `EPERM` / `EBUSY` al instalar | Carpeta sincronizada con OneDrive u otro servicio; ver el aviso del paso 1. |

@@ -12,12 +12,16 @@
 
 `src/hooks/useSongs.ts`:
 
-1. **Carga inicial** de todas las canciones del usuario.
+1. **Carga inicial** de todas las canciones del usuario. La lista no descarga `original_text` (el texto OCR con acordes, que puede ser largo): solo se pide al abrir una canción.
 2. **Suscripción Realtime** a `postgres_changes` (INSERT, UPDATE, DELETE) sobre `songs`. Supabase aplica RLS, así que cada usuario solo recibe eventos de sus filas.
 3. Cada evento se aplica a la lista en memoria; se descartan eventos con `version` menor a la que ya se tiene (llegan desordenados a veces).
 4. **Reconexión**: al quedar `SUBSCRIBED` de nuevo, o cuando la app vuelve a primer plano, se recarga la lista completa. Así se recuperan cambios hechos mientras el teléfono estaba sin internet o en segundo plano.
 
-`app/song/[id].tsx` se suscribe además a la canción abierta, de modo que si la editas en la tablet, el teléfono la actualiza al instante.
+`app/song/[id].tsx` se suscribe además a la canción abierta, de modo que si la editas en la tablet, el teléfono la actualiza al instante:
+
+- **UPDATE** con filtro `id=eq.<id>`: solo llegan cambios de esa canción.
+- **DELETE sin filtro**: Supabase Realtime **no aplica filtros a los eventos DELETE**, así que la pantalla escucha todos los borrados del usuario y compara `old.id` con la canción abierta. Con RLS activo, `old` solo trae la clave primaria, que es justo lo que se necesita. Cuando el borrado lo hace el propio dispositivo, se ignora el evento para no mostrar el aviso de "eliminada desde otro dispositivo".
+- Si llega un DELETE **mientras editas**, no se cierra la pantalla (perderías lo escrito): aparece un aviso y, al guardar, se ofrece *Guardar como nueva*. *Cancelar* vuelve a la biblioteca.
 
 ## Conflictos de edición
 
@@ -29,7 +33,12 @@ update songs set ... where id = :id and version = :versionQueEditaste
 
 - Si afecta 1 fila → guardado.
 - Si afecta 0 filas → otro dispositivo guardó antes → la app muestra **"Conflicto de edición"** con dos opciones: *Descartar mis cambios* o *Sobrescribir con los míos*.
+- Si afecta 0 filas **y la canción ya no existe** (se eliminó en otro dispositivo mientras editabas) → aviso **"Canción eliminada"** con *Descartar* o *Guardar como nueva*, que crea una canción nueva con tu título, tu letra y el texto OCR original (sin la foto, que ya se borró).
 - Si mientras editas llega un cambio remoto, aparece un aviso amarillo y tu texto no se reemplaza.
+
+## Eliminación
+
+`deleteSong` borra **primero la foto** de Storage y **después** la fila. Si la foto no se puede borrar (sin conexión, error del servidor), se cancela la operación y se muestra el error: así nunca quedan fotos huérfanas ocupando espacio. Reintentar es seguro porque borrar una ruta que ya no existe no da error.
 
 ## Sin conexión
 
