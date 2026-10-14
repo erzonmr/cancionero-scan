@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../src/components/Button';
-import { ConflictError, deleteSong, getScanUrl, getSong, Song, updateSong } from '../../src/lib/songs';
+import { ConflictError, createSong, deleteSong, getScanUrl, getSong, Song, updateSong } from '../../src/lib/songs';
 import { supabase } from '../../src/lib/supabase';
 import { colors } from '../../src/theme';
 
@@ -31,10 +31,12 @@ export default function SongScreen() {
   const [fontSize, setFontSize] = useState(20);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [remoteChanged, setRemoteChanged] = useState(false);
+  const [remoteDeleted, setRemoteDeleted] = useState(false);
   const editingRef = useRef(false);
   editingRef.current = editing;
   const songRef = useRef<Song | null>(null);
   songRef.current = song;
+  const deletingRef = useRef(false); // true mientras ESTE dispositivo elimina la canción
 
   const load = useCallback(async () => {
     const s = await getSong(id);
@@ -47,17 +49,20 @@ export default function SongScreen() {
     // Escuchar cambios de esta canción hechos desde otros dispositivos.
     const channel = supabase
       .channel(`song-${id}`)
-      .on<Song>('postgres_changes', { event: '*', schema: 'public', table: 'songs', filter: `id=eq.${id}` }, (p) => {
-        if (p.eventType === 'DELETE') {
-          Alert.alert('Canción eliminada', 'Se eliminó desde otro dispositivo.');
-          router.back();
-          return;
-        }
+      .on<Song>('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'songs', filter: `id=eq.${id}` }, (p) => {
         const incoming = p.new as Song;
         const cur = songRef.current;
         if (cur && incoming.version <= cur.version) return; // evento viejo o eco de mi propio guardado
         if (editingRef.current) setRemoteChanged(true); // no pisar lo que el usuario está escribiendo
         else setSong(incoming);
+      })
+      // Realtime no aplica filtros a los DELETE: se escuchan todos (RLS ya limita a los del
+      // usuario) y se compara el id. Con RLS, `old` solo trae la clave primaria.
+      .on<Song>('postgres_changes', { event: 'DELETE', schema: 'public', table: 'songs' }, (p) => {
+        if ((p.old as Partial<Song>).id !== id || deletingRef.current) return;
+        if (editingRef.current) return setRemoteDeleted(true); // no sacar al usuario con cambios sin guardar
+        Alert.alert('Canción eliminada', 'Se eliminó desde otro dispositivo.');
+        router.back();
       })
       .subscribe();
     return () => {
@@ -70,6 +75,7 @@ export default function SongScreen() {
     setTitle(song.title);
     setLyrics(song.lyrics);
     setRemoteChanged(false);
+    setRemoteDeleted(false);
     setEditing(true);
   }
 
@@ -82,7 +88,23 @@ export default function SongScreen() {
       setEditing(false);
       setRemoteChanged(false);
     } catch (e) {
-      if (e instanceof ConflictError) {
+      if (e instanceof ConflictError && !e.latest) {
+        // Se eliminó en otro dispositivo mientras se editaba: no perder lo escrito.
+        Alert.alert('Canción eliminada', 'Se eliminó desde otro dispositivo mientras la editabas.', [
+          { text: 'Descartar', style: 'destructive', onPress: () => router.back() },
+          {
+            text: 'Guardar como nueva',
+            onPress: async () => {
+              try {
+                const { song: created } = await createSong({ title, lyrics, originalText: song.original_text ?? '' });
+                router.replace(`/song/${created.id}`);
+              } catch (err) {
+                Alert.alert('No se pudo guardar', err instanceof Error ? err.message : String(err));
+              }
+            },
+          },
+        ]);
+      } else if (e instanceof ConflictError) {
         const latest = e.latest;
         Alert.alert(
           'Conflicto de edición',
@@ -92,7 +114,7 @@ export default function SongScreen() {
             {
               text: 'Sobrescribir con los míos',
               onPress: async () => {
-                if (!latest) return;
+                if (!latest) return; // no ocurre: el caso sin `latest` se maneja arriba
                 try {
                   setSong(await updateSong(latest.id, { title, lyrics }, latest.version));
                   setEditing(false);
@@ -119,11 +141,13 @@ export default function SongScreen() {
         text: 'Eliminar',
         style: 'destructive',
         onPress: async () => {
+          deletingRef.current = true;
           try {
             await deleteSong(song);
             router.back();
           } catch (e) {
-            Alert.alert('Error', e instanceof Error ? e.message : String(e));
+            deletingRef.current = false;
+            Alert.alert('No se pudo eliminar', e instanceof Error ? e.message : String(e));
           }
         },
       },
@@ -163,7 +187,11 @@ export default function SongScreen() {
       {editing ? (
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <ScrollView contentContainerStyle={{ padding: 16, gap: 10 }} keyboardShouldPersistTaps="handled">
-            {remoteChanged && (
+            {remoteDeleted ? (
+              <Text style={styles.warning}>
+                Esta canción se eliminó en otro dispositivo. Al guardar podrás conservarla como canción nueva.
+              </Text>
+            ) : remoteChanged && (
               <Text style={styles.warning}>
                 Esta canción se modificó en otro dispositivo. Al guardar podrás elegir qué versión conservar.
               </Text>
@@ -178,7 +206,12 @@ export default function SongScreen() {
             />
           </ScrollView>
           <View style={styles.actions}>
-            <Button title="Cancelar" variant="secondary" onPress={() => setEditing(false)} disabled={saving} />
+            <Button
+              title="Cancelar"
+              variant="secondary"
+              onPress={() => (remoteDeleted ? router.back() : setEditing(false))}
+              disabled={saving}
+            />
             <Button title="Guardar" onPress={save} loading={saving} style={{ flex: 1 }} />
           </View>
         </KeyboardAvoidingView>

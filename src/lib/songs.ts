@@ -21,12 +21,16 @@ export class ConflictError extends Error {
   }
 }
 
-const COLUMNS = 'id,user_id,title,lyrics,original_text,image_path,version,created_at,updated_at';
+/** Lo que necesita la biblioteca: sin `original_text`, que puede ser largo y solo se usa al abrir una canción. */
+export type SongSummary = Omit<Song, 'original_text'>;
 
-export async function listSongs(): Promise<Song[]> {
-  const { data, error } = await supabase.from('songs').select(COLUMNS).order('updated_at', { ascending: false });
+const LIST_COLUMNS = 'id,user_id,title,lyrics,image_path,version,created_at,updated_at';
+const COLUMNS = `${LIST_COLUMNS},original_text`;
+
+export async function listSongs(): Promise<SongSummary[]> {
+  const { data, error } = await supabase.from('songs').select(LIST_COLUMNS).order('updated_at', { ascending: false });
   if (error) throw error;
-  return data as Song[];
+  return data as SongSummary[];
 }
 
 export async function getSong(id: string): Promise<Song | null> {
@@ -96,9 +100,15 @@ export async function updateSong(id: string, changes: { title: string; lyrics: s
   return data as Song;
 }
 
+/**
+ * Elimina primero la foto y después la fila. Si la foto no se puede borrar se
+ * aborta, para no dejar archivos huérfanos ocupando espacio en Storage (borrar
+ * una ruta que ya no existe no es un error, así que reintentar es seguro).
+ */
 export async function deleteSong(song: Song): Promise<void> {
   if (song.image_path) {
-    await supabase.storage.from(SCANS_BUCKET).remove([song.image_path]);
+    const { error } = await supabase.storage.from(SCANS_BUCKET).remove([song.image_path]);
+    if (error) throw error;
   }
   const { error } = await supabase.from('songs').delete().eq('id', song.id);
   if (error) throw error;

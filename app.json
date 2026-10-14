@@ -3,24 +3,42 @@
     "name": "Cancionero Scan",
     "slug": "cancionero-scan",
     "scheme": "cancioneroscan",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0f1115",
     "ios": {
       "bundleIdentifier": "com.cancionero.scan",
       "supportsTablet": true,
       "infoPlist": {
         "NSCameraUsageDescription": "Necesitamos la cámara para escanear las páginas de tu cancionero.",
-        "NSPhotoLibraryUsageDescription": "Necesitamos acceso a tus fotos para importar páginas ya fotografiadas."
+        "NSPhotoLibraryUsageDescription": "Necesitamos acceso a tus fotos para importar páginas ya fotografiadas.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "package": "com.cancionero.scan",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f1115"
+      },
       "permissions": ["android.permission.CAMERA"]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#0f1115"
+        }
+      ],
       [
         "expo-camera",
         { "cameraPermission": "Necesitamos la cámara para escanear las páginas de tu cancionero." }
