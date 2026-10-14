@@ -9,3 +9,6 @@ ios/
 
 # Datos de idioma que Tesseract.js descarga al ejecutarse con Node
 *.traineddata
+
+# Fotos de prueba del cancionero (personales, no se suben)
+samples/

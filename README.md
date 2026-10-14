@@ -34,6 +34,10 @@ npm run build:web           # build local en dist/, para revisarla
 
 El mismo código compila como app de Android/iOS con EAS (`npm run build:apk`). No es necesaria para usar la app: [`docs/07-compilar-apk.md`](docs/07-compilar-apk.md).
 
+## Próxima tarea
+
+⏳ **Transcripción con IA de visión** (Claude vía Supabase Edge Function) en lugar de Tesseract, que no da buenos resultados con fotos reales. Plan y pasos: [`docs/11-plan-ocr-ia.md`](docs/11-plan-ocr-ia.md).
+
 ## Documentación
 
 Toda la documentación está en [`/docs`](docs/README.md). Cambios: [`CHANGELOG.md`](CHANGELOG.md).

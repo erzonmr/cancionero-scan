@@ -21,7 +21,7 @@
 | Prioridad | Mejora | Notas técnicas |
 |-----------|--------|----------------|
 | Alta | Escaneo de **varias páginas** por canción | Array de imágenes en Storage, concatenar textos |
-| Alta | **OCR en la nube como respaldo** (botón *Reintentar con OCR en la nube*) | OCR.space (gratis ~25 000 fotos/mes, solo registro) o Google Vision vía Supabase Edge Function. La clave va en la Edge Function, nunca en la app. Prioridad alta si Tesseract no alcanza con tus cancioneros |
+| ⏳ **Siguiente** | **Transcripción con IA de visión (Claude)** como motor principal, con Tesseract de respaldo | Decidido el 2026-10-13 porque Tesseract no da buenos resultados con fotos reales. Plan completo: [11-plan-ocr-ia.md](11-plan-ocr-ia.md) |
 | Alta | **Detección de bordes y corrección de perspectiva** | Web: OpenCV.js o jscanify. Nativo: `react-native-document-scanner-plugin` |
 | Alta | **Setlists / listas para el culto** | Tabla `setlists` + `setlist_songs (position)` |
 | Media | **Cancioneros compartidos** con el equipo de alabanza | Tabla `songbooks` + `songbook_members (role)`; ajustar RLS |

@@ -2,6 +2,11 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versiones según `version` en `app.json`.
 
+## [Sin publicar]
+
+### Planificado
+- Transcripción con IA de visión en lugar de Tesseract: ver [`docs/11-plan-ocr-ia.md`](docs/11-plan-ocr-ia.md).
+
 ## [0.3.1] — 2026-10-13
 
 ### Corregido
