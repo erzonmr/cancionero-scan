@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "Cancionero Scan",
+    "slug": "cancionero-scan",
+    "scheme": "cancioneroscan",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "com.cancionero.scan",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Necesitamos la cámara para escanear las páginas de tu cancionero.",
+        "NSPhotoLibraryUsageDescription": "Necesitamos acceso a tus fotos para importar páginas ya fotografiadas."
+      }
+    },
+    "android": {
+      "package": "com.cancionero.scan",
+      "permissions": ["android.permission.CAMERA"]
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        { "cameraPermission": "Necesitamos la cámara para escanear las páginas de tu cancionero." }
+      ],
+      [
+        "expo-image-picker",
+        { "photosPermission": "Necesitamos acceso a tus fotos para importar páginas ya fotografiadas." }
+      ]
+    ],
+    "experiments": { "typedRoutes": false }
+  }
+}
