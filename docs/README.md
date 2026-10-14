@@ -14,6 +14,7 @@
 | 8 | [Pruebas y calidad](08-pruebas.md) | Tests automáticos, CI y lista de pruebas manuales |
 | 9 | [Limitaciones y roadmap](09-roadmap.md) | Qué no hace el MVP y siguientes pasos |
 | 10 | [**Versión web (PWA)**](10-version-web.md) | **Forma principal de uso**: instalar en el teléfono, publicar en Vercel, configuración de Supabase, OCR en el navegador |
+| 11 | [**Plan pendiente: OCR con IA**](11-plan-ocr-ia.md) | ⏳ **Próxima tarea.** Sustituir Tesseract por IA de visión (Claude) vía Supabase Edge Function |
 
 ## Resumen en una línea
 
