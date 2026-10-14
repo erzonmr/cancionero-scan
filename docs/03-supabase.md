@@ -1,5 +1,7 @@
 # 3. Configurar Supabase
 
+> **Proyecto en uso:** `cancionero-scan` (ref `rtvqztntgnuzcbgnnomm`, us-east-1, plan gratuito), creado el 2026-10-13 con la migración `0001_init.sql` ya aplicada y sin avisos del asesor de seguridad. Esta guía sirve para crear uno nuevo desde cero. La configuración de autenticación pendiente para la versión web está en [10-version-web.md](10-version-web.md#configuración-de-supabase-pendiente-hazlo-una-vez).
+
 ## 1. Crear el proyecto
 
 1. Entra a https://supabase.com/dashboard → **New project**.
@@ -57,4 +59,4 @@ Dashboard → **Authentication → Providers → Email**: habilitado por defecto
 
 Los límites cambian con el tiempo; revisa https://supabase.com/pricing. Como referencia para dimensionar: una canción ocupa ~2–5 KB de texto y ~300–800 KB de imagen JPG. El almacenamiento de imágenes es lo que más crece; si se vuelve un problema, ver la opción de "no guardar foto" en el roadmap.
 
-Ten en cuenta que los proyectos gratuitos **se pausan tras un periodo sin actividad**; se reactivan desde el dashboard.
+Ten en cuenta que los proyectos gratuitos **se pausan tras un periodo sin actividad** (por eso tus otros proyectos aparecen pausados); se reactivan desde el dashboard. Si un día la app no carga canciones y muestra un error de conexión, revisa esto primero. El plan gratuito permite **2 proyectos activos** a la vez.
