@@ -1,7 +1,7 @@
 import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
@@ -22,7 +22,9 @@ export const supabase = createClient(url, anonKey, {
     storage: AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false,
+    // En la web, el enlace de confirmación del correo vuelve a la app con la sesión en la URL
+    // (#access_token=…): leerla deja al usuario dentro sin volver a escribir la contraseña.
+    detectSessionInUrl: Platform.OS === 'web',
   },
 });
 

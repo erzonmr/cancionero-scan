@@ -2,6 +2,11 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versiones según `version` en `app.json`.
 
+## [0.3.1] — 2026-10-13
+
+### Corregido
+- Web: el enlace de confirmación del correo inicia sesión automáticamente (`detectSessionInUrl` en web) y el registro pide volver a la misma app (`emailRedirectTo`). Requiere la Site URL de Supabase apuntando a la app.
+
 ## [0.3.0] — 2026-10-13
 
 La app pasa a usarse principalmente como **PWA** (web instalable) publicada en Vercel: https://cancionero-erzon.vercel.app. La app nativa sigue compilando con el mismo código.

@@ -51,7 +51,7 @@ npx serve -s dist    # sirve dist/ en http://localhost:3000
 
 En el panel de Supabase → proyecto `cancionero-scan` → **Authentication**:
 
-1. **URL Configuration → Site URL**: pon `https://cancionero-erzon.vercel.app`. El enlace del correo de confirmación de cuenta lleva ahí (por defecto apunta a `localhost`).
+1. **URL Configuration → Site URL**: pon `https://cancionero-erzon.vercel.app`. El enlace del correo de confirmación lleva ahí. Si se deja el valor por defecto (`http://localhost:3000`), la cuenta **sí se confirma**, pero el navegador acaba en `localhost` (una página de error u otra app que tengas en ese puerto); basta con entrar a la URL de la app e iniciar sesión. Con la Site URL correcta, el enlace abre la app con la sesión ya iniciada (`detectSessionInUrl` está activo en la web).
 2. **Sign In / Providers → Email**: como es una app personal, puedes desactivar **Confirm email** para no depender del correo.
 3. **Después de crear tu cuenta** (y las de quien quieras invitar): desactiva **Allow new users to sign up**. La URL es pública; sin esto, cualquiera que la encuentre podría crear una cuenta y subir fotos a tu Storage. Tus datos están protegidos por RLS de todas formas: otra cuenta nunca ve tus canciones.
 
